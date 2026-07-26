@@ -1,0 +1,76 @@
+# Render Blueprint for the Teamup → Discord bridge.
+# In Render: New → Blueprint, point it at this repo, then fill in the secrets
+# it prompts for (everything marked `sync: false`).
+services:
+  - type: web
+    name: teamup-discord-bridge
+    runtime: node
+    plan: free
+    region: ohio
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+
+      # --- secrets: Render will prompt for these ---
+      - key: TEAMUP_CALENDAR_KEY
+        sync: false
+      - key: TEAMUP_API_KEY
+        sync: false
+      - key: DISCORD_WEBHOOK_URL
+        sync: false
+      - key: ADMIN_TOKEN
+        generateValue: true
+
+      # --- behavior ---
+      - key: ORG_NAME
+        value: North Alabama DSA
+      - key: TIMEZONE
+        value: America/Chicago
+      - key: REMINDER_OFFSETS_MINUTES
+        value: "1440,120"
+      - key: CHANGE_ALERTS_ENABLED
+        value: "true"
+      - key: DIGEST_ENABLED
+        value: "true"
+      - key: DIGEST_DAY
+        value: friday
+      - key: DIGEST_HOUR
+        value: "9"
+      - key: DIGEST_INTRO
+        value: Hey y'all! Here's what we have going on this week. Hope you can make it!
+      - key: DIGEST_LAYOUT
+        value: grouped
+      # Off until we settle on a frictionless flow for every calendar app.
+      - key: ADD_TO_CALENDAR_ENABLED
+        value: "false"
+      # PUBLIC_BASE_URL is not set here on purpose: the service reads Render's
+      # own RENDER_EXTERNAL_URL, so .ics links point at the right host with no
+      # manual step. Set it only if you put a custom domain in front.
+      - key: POLL_INTERVAL_MINUTES
+        value: "10"
+      - key: HORIZON_DAYS
+        value: "60"
+      - key: DISCORD_USERNAME
+        value: Chapter Calendar
+
+      # Flip to "true" for the first deploy if you want to watch the logs
+      # before anything reaches the channel.
+      - key: DRY_RUN
+        value: "false"
+
+      # On the free plan the filesystem resets on every deploy, so leave this
+      # at the default. If you upgrade to Starter and attach the disk below,
+      # change this to /var/data/state.json so dedup state survives restarts.
+      - key: STATE_FILE
+        value: ./data/state.json
+
+    # Uncomment together with the STATE_FILE change above. Disks require a
+    # paid instance type; free services cannot mount one.
+    # disk:
+    #   name: state
+    #   mountPath: /var/data
+    #   sizeGB: 1

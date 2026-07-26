@@ -1,0 +1,36 @@
+{
+  "name": "teamup-discord-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mirrors a public Teamup calendar into a Discord channel as reminders, change alerts, and a weekly digest.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "once": "tsx src/cli.ts run-once",
+    "preview": "tsx src/cli.ts preview",
+    "digest": "tsx src/cli.ts digest",
+    "reminder": "tsx src/cli.ts reminder",
+    "demo": "tsx src/cli.ts demo",
+    "demo:digest": "tsx src/cli.ts demo-digest",
+    "demo:clean": "tsx src/cli.ts demo-clean",
+    "test": "node --import tsx --test --test-reporter=spec test/*.test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "luxon": "^3.5.0",
+    "node-ical": "^0.27.1"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.4.2",
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "license": "CC0-1.0"
+}
