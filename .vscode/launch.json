@@ -1,0 +1,33 @@
+{
+  // Debug configs for the node:test suite. The runner is Node's built-in test
+  // runner, loaded through tsx so the TypeScript sources need no build step.
+  //
+  // Pass test/*.test.ts as a glob rather than the test/ directory: Node treats
+  // every .ts file inside a folder named "test" as a test file, which makes it
+  // fail on helpers.ts (a fixture module containing no tests).
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug all tests",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--import", "tsx", "--test", "--test-reporter=spec"],
+      "args": ["test/*.test.ts"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    },
+    {
+      "name": "Debug current test file",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--import", "tsx", "--test", "--test-reporter=spec"],
+      "args": ["${relativeFile}"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    }
+  ]
+}
