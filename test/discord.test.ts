@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'node:test';
 import { DiscordWebhook, type DiscordEmbed } from '../src/discord.js';
-import { redact } from '../src/http.js';
+import { HttpError, redact } from '../src/http.js';
 import { makeConfig } from './helpers.js';
 
 interface Sent {
@@ -147,5 +147,17 @@ describe('redact', () => {
 
   it('leaves ordinary URLs alone', () => {
     assert.equal(redact('https://teamup.com/kstest/events'), 'https://teamup.com/kstest/events');
+  });
+
+  // The message reaches the terminal and, through lastError, the unauthenticated
+  // /healthz response. A failed post must not publish the webhook token.
+  it('keeps the webhook token out of HttpError messages', () => {
+    const error = new HttpError(
+      400,
+      '{"message":"Invalid Form Body"}',
+      'https://discord.com/api/webhooks/123456/supersecrettoken?wait=true',
+    );
+    assert.ok(!error.message.includes('supersecrettoken'), error.message);
+    assert.match(error.message, /webhooks\/123456\/\*\*\*/);
   });
 });

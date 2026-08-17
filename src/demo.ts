@@ -21,6 +21,11 @@ function messageLogPath(config: Config): string {
   return resolve(`${config.stateFile}.demo-messages.json`);
 }
 
+/** The demo's own dedup state, kept apart from any deployment's. */
+function demoStatePath(config: Config): string {
+  return resolve(`${config.stateFile}.demo`);
+}
+
 /** Wraps the real webhook and remembers every message ID it creates. */
 class RecordingWebhook implements Notifier {
   readonly ids: string[] = [];
@@ -67,6 +72,9 @@ async function writeMessageLog(config: Config, ids: string[]): Promise<void> {
  * messages this tool posted and logged.
  */
 export async function cleanDemo(config: Config): Promise<{ deleted: number; missing: number }> {
+  // Undoing a run includes its dedup state, not just the messages.
+  await rm(demoStatePath(config), { force: true });
+
   const ids = await readMessageLog(config);
   if (ids.length === 0) {
     log.info('No logged demo messages to delete.');
@@ -221,8 +229,14 @@ export async function runDemo(config: Config, pauseMs = 2_500): Promise<void> {
   const source = new ScriptedSource();
   const discord = new RecordingWebhook(new DiscordWebhook(config));
 
+  // Discarded rather than reused: the walkthrough only tells its story from an
+  // empty calendar. Carried-over state makes a re-run post less than the first
+  // run — the events are already recorded and the week's digest key is already
+  // marked posted, so step 4 goes silent.
+  await rm(demoStatePath(config), { force: true });
+
   // Separate state file so a demo cannot disturb a deployment's record.
-  const store = new Store(`${config.stateFile}.demo`);
+  const store = new Store(demoStatePath(config));
   await store.load();
 
   const deps: Deps = { config, source, discord, store };

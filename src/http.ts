@@ -6,7 +6,10 @@ export class HttpError extends Error {
     readonly body: string,
     url: string,
   ) {
-    super(`HTTP ${status} from ${url}: ${body.slice(0, 400)}`);
+    // Redacted here rather than at the log site: this message reaches the
+    // terminal, and /healthz serves it unauthenticated as lastError. A failed
+    // Discord post would otherwise publish the webhook token.
+    super(`HTTP ${status} from ${redact(url)}: ${body.slice(0, 400)}`);
     this.name = 'HttpError';
   }
 }

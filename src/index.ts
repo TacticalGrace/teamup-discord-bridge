@@ -1,5 +1,6 @@
 import { ConfigError, loadConfig, reportConfigError } from './config.js';
 import { DiscordWebhook } from './discord.js';
+import { redact } from './http.js';
 import { log } from './logger.js';
 import { runCheck, type Deps } from './bridge.js';
 import { startServer, type ServerStatus } from './server.js';
@@ -37,7 +38,9 @@ async function main(): Promise<void> {
       );
     } catch (error) {
       status.lastRunOk = false;
-      status.lastError = error instanceof Error ? error.message : String(error);
+      // /healthz publishes this without authentication; never let a URL
+      // carrying a webhook token or API key through.
+      status.lastError = redact(error instanceof Error ? error.message : String(error));
       log.error('Check failed', error);
     } finally {
       status.lastRunAt = new Date().toISOString();
